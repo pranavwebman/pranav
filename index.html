@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SEPAS — Smart Emergency Panic Alert System (Technical Blueprint)</title>
+  <style>
+    :root {
+      --bg: #fbfaf8;
+      --paper: #ffffff;
+      --muted: #6b7280;
+      --accent: #0f172a;
+      --toc: #0b5cff;
+      --highlight: #c7e0ff;
+      --border: #e6eef8;
+      --max-width: 980px;
+      --gutter: 28px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--accent);
+      line-height: 1.6;
+    }
+    
+    .wrap {
+      max-width: var(--max-width);
+      margin: 28px auto;
+      padding: 24px;
+      background: var(--paper);
+      box-shadow: 0 6px 24px rgba(12, 12, 12, 0.06);
+      border-radius: 10px;
+    }
+    
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.05;
+      margin: 0;
+    }
+    
+    .subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 4px 0 0 0;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    button {
+      background: #0b5cff;
+      color: #fff;
+      border: 0;
+      padding: 8px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.2s;
+    }
+    
+    button:hover {
+      background: #0a4fd9;
+    }
+    
+    button.ghost {
+      background: transparent;
+      color: var(--toc);
+      border: 1px solid #dbeafe;
+    }
+    
+    button.ghost:hover {
+      background: #f1f5f9;
+    }
+    
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 28px;
+      margin-top: 20px;
+    }
+    
+    nav {
+      position: sticky;
+      top: 24px;
+      height: calc(100vh - 56px);
+      overflow: auto;
+      padding-right: 8px;
+    }
+    
+    .toc {
+      background: linear-gradient(180deg, #ffffff, #fbfdff);
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid #eef2ff;
+    }
+    
+    .toc h3 {
+      margin: 0 0 8px 0;
+      font-size: 13px;
+    }
+    
+    .toc a {
+      display: block;
+      padding: 6px 8px;
+      border-radius: 6px;
+      color: var(--toc);
+      text-decoration: none;
+      font-size: 14px;
+      transition: background-color 0.2s;
+    }
+    
+    .toc a:hover {
+      background: #eef2ff;
+    }
+    
+    main {
+      padding: 18px;
+      background: transparent;
+    }
+    
+    article {
+      line-height: 1.6;
+      color: #0b1220;
+    }
+    
+    h1, h2, h3 {
+      margin: 18px 0 8px 0;
+    }
+    
+    h1 {
+      font-size: 24px;
+    }
+    
+    h2 {
+      font-size: 18px;
+      border-left: 4px solid #eef2ff;
+      padding-left: 12px;
+    }
+    
+    p {
+      margin: 8px 0;
+    }
+    
+    .section {
+      margin: 18px 0;
+      padding: 14px;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #ffffff, #fbfbff);
+      border: 1px solid #f1f5f9;
+      transition: border-color 0.2s;
+    }
+    
+    .section.highlighted {
+      border-color: var(--highlight);
+      box-shadow: 0 0 0 2px var(--highlight);
+    }
+    
+    .meta {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    
+    .keywords {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .chip {
+      background: #f1f5f9;
+      padding: 6px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: #334155;
+    }
+    
+    .print-only {
+      display: none;
+    }
+    
+    .search {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    
+    input[type="search"] {
+      flex: 1;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #e6eef8;
+      font-family: inherit;
+    }
+    
+    .small {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    
+    pre {
+      white-space: pre-wrap;
+      background: #0b1220;
+      color: #e6eef8;
+      padding: 12px;
+      border-radius: 8px;
+      overflow: auto;
+      font-family: 'Courier New', monospace;
+    }
+    
+    /* PDF Viewer Styles */
+    .pdf-viewer {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .pdf-container {
+      background: white;
+      border-radius: 8px;
+      width: 90%;
+      height: 90%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .pdf-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .pdf-content {
+      flex: 1;
+      overflow: auto;
+      padding: 16px;
+    }
+    
+    .pdf-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    
+    .close-btn {
+      background: transparent;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--muted);
+    }
+    
+    .close-btn:hover {
+      color: var(--accent);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+        margin-top: 12px;
+      }
+      
+      nav {
+        position: relative;
+        height: auto;
+      }
+      
+      .toc {
+        display: flex;
+        gap: 8px;
+        overflow: auto;
+        padding-bottom: 12px;
+      }
+      
+      .toc a {
+        white-space: nowrap;
+      }
+    }
+    
+    @media print {
+      body {
+        background: #fff;
+      }
+      
+      nav, .controls, .search, .pdf-viewer {
+        display: none;
+      }
+      
+      .wrap {
+        box-shadow: none;
+        border-radius: 0;
+      }
+      
+      .print-only {
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" role="document">
+    <header>
+      <div>
+        <h1 class="title">SEPAS — Smart Emergency Panic Alert System</h1>
+        <p class="subtitle">Technical blueprint, architecture, hardware, and security details</p>
+      </div>
+      <div class="controls">
+        <div class="search">
+          <input id="q" type="search" placeholder="Search headings or text" aria-label="Search within document" />
+          <button id="searchBtn">Find</button>
+        </div>
+        <button id="viewPdfBtn">View PDF</button>
+        <button onclick="window.print()">Print / Save PDF</button>
+      </div>
+    </header>
+    
+    <div class="layout">
+      <nav aria-label="Table of contents">
+        <div class="toc">
+          <h3>Contents</h3>
+          <a href="#core">1. Core Concept and Objectives</a>
+          <a href="#architecture">2. System Architecture</a>
+          <a href="#hardware">3. Hardware Design - SEPAS Node</a>
+          <a href="#software">4. Software Stack - Mobile Application</a>
+          <a href="#comm">5. Communication Protocols</a>
+          <a href="#evidence">6. Data Capture and Evidence Management</a>
+          <a href="#security">7. Encryption and Security Architecture</a>
+          <a href="#ai">8. AI-Based Sound and Event Recognition</a>
+          <a href="#cloud">9. Cloud Infrastructure and APIs</a>
+          <a href="#reliability">10. Reliability and Power Optimization</a>
+          <a href="#scalability">11. Scalability and Future Expansion</a>
+          <a href="#limitations">12. Known Limitations</a>
+          <a href="#conclusion">13. Conclusion</a>
+        </div>
+      </nav>
+
+      <main>
+        <article>
+          <section id="core" class="section">
+            <h2>1. Core Concept and Objectives</h2>
+            <p class="meta">SEPAS provides a rapid-response safety mechanism. It uses online and offline channels.</p>
+            <p>SEPAS aims to provide a universal, rapid-response safety mechanism that uses both online and offline communication channels.</p>
+            <p>The primary objectives include:</p>
+            <ul>
+              <li>Instant activation of distress alerts via the mobile app or hardware trigger.</li>
+              <li>Autonomous capture of evidential data such as audio, video, images, and location.</li>
+              <li>Secure local storage and optional transmission through Bluetooth Mesh and Internet.</li>
+              <li>Integration with pre-authorized contacts and government safety systems.</li>
+              <li>High data integrity and tamper-resistance through cryptographic methods.</li>
+              <li>Operation under power, network, or hardware failure conditions.</li>
+            </ul>
+            <p>The system targets vulnerable contexts such as public spaces, transportation, and educational environments, where rapid data collection and broadcasting can prevent escalation or enable early intervention.</p>
+          </section>
+
+          <section id="architecture" class="section">
+            <h2>2. System Architecture</h2>
+            <p>SEPAS follows a distributed hybrid architecture combining three main layers:</p>
+            <ol>
+              <li><strong>End Device Layer (Mobile Application)</strong> – The user's smartphone running the SEPAS app that manages sensor data acquisition, encryption, and communication control.</li>
+              <li><strong>Local Node Layer (SEPAS Node)</strong> – A low-power embedded device acting as a Bluetooth Mesh node and redundant metadata storage unit.</li>
+              <li><strong>Cloud Integration Layer (SEPAS Server)</strong> – A secure backend for alert registration, message routing, and data verification with authority endpoints.</li>
+            </ol>
+          </section>
+
+          <section id="hardware" class="section">
+            <h2>3. Hardware Design – SEPAS Node</h2>
+            <p>The SEPAS node functions as a portable communication relay and metadata vault. Its hardware includes:</p>
+            <ul>
+              <li>Microcontroller: ARM Cortex-M series or ESP32 with BLE 5.0 Mesh support.</li>
+              <li>Power: 3.7V Li-ion battery with solar recharge circuit and low-power standby mode.</li>
+              <li>Sensors: Optional vibration, sound, and motion sensors to detect nearby disturbances.</li>
+              <li>Storage: Flash memory partitioned into write-once encrypted metadata segments.</li>
+              <li>Connectivity: Bluetooth Low Energy Mesh for peer-to-peer packet relaying; optional LoRa module for long-distance mesh extension.</li>
+              <li>Security Hardware: AES-capable crypto co-processor for key generation and signing operations.</li>
+            </ul>
+            <p>The node maintains synchronization with the mobile app via encrypted Bluetooth pairing and periodically validates its system clock and device ID.</p>
+          </section>
+
+          <section id="software" class="section">
+            <h2>4. Software Stack – Mobile Application</h2>
+            <p>The mobile app operates as the main intelligence unit. It includes multiple modules:</p>
+            <ul>
+              <li><strong>Core Module</strong>: Handles user registration, authentication, and SOS trigger monitoring.</li>
+              <li><strong>Media Acquisition Module</strong>: Controls camera, microphone, and sensor access to capture evidence automatically.</li>
+              <li><strong>Encryption Engine</strong>: Performs AES-256 encryption on all stored and transmitted data.</li>
+              <li><strong>Hashing and Integrity Layer</strong>: Generates SHA-256 hashes for every file and writes them into the immutable ledger.</li>
+              <li><strong>Communication Layer</strong>: Implements Bluetooth Mesh packet encoding and HTTPS REST endpoints for online alerts.</li>
+              <li><strong>AI Event Classifier</strong>: Uses TensorFlow Lite model for recognizing distress sounds such as screams, crashes, or panic phrases.</li>
+              <li><strong>Power Management</strong>: Suspends non-critical background processes when an alert is triggered to preserve battery.</li>
+            </ul>
+          </section>
+
+          <section id="comm" class="section">
+            <h2>5. Communication Protocols</h2>
+            <p>SEPAS uses two primary communication routes:</p>
+            <h3>Offline Mode (Bluetooth Mesh)</h3>
+            <ul>
+              <li>Operates via managed flooding within a mesh network of nearby nodes.</li>
+              <li>Nodes rebroadcast emergency packets containing event metadata, not full media, to all reachable devices.</li>
+              <li>Each packet includes unique event ID, timestamp, hash of media, and approximate location.</li>
+              <li>Mesh messages are authenticated with digital signatures to prevent spoofing.</li>
+            </ul>
+
+            <h3>Online Mode (Internet)</h3>
+            <ul>
+              <li>When connectivity is available, the app pushes encrypted alert data to SEPAS Cloud through HTTPS using JSON payloads.</li>
+              <li>Cloud backend stores event metadata, verifies integrity hashes, and forwards verified alert notifications to pre-approved recipients.</li>
+            </ul>
+          </section>
+
+          <section id="evidence" class="section">
+            <h2>6. Data Capture and Evidence Management</h2>
+            <p>Upon SOS activation:</p>
+            <ol>
+              <li>The system immediately captures a 5-second pre-buffered audio and video sequence using a rolling buffer.</li>
+              <li>Simultaneously, it records three still frames and captures sensor readings (accelerometer, GPS, microphone amplitude, environmental data).</li>
+              <li>All data are stored in a secure internal directory accessible only to the SEPAS app.</li>
+              <li>Each evidence file undergoes AES-256 encryption using the app's private key derived from Android's Secure Keystore.</li>
+              <li>A SHA-256 hash is generated for each encrypted file, logged alongside timestamp and device ID in the immutable ledger file.</li>
+            </ol>
+          </section>
+
+          <section id="security" class="section">
+            <h2>7. Encryption and Security Architecture</h2>
+            <p>Encryption Standard: AES-256 GCM providing confidentiality and integrity.</p>
+            <ul>
+              <li>Key Storage: Keys generated during app setup are stored in Android Keystore, bound to device hardware.</li>
+              <li>Hashing Mechanism: SHA-256 provides 64-character digest unique to each file.</li>
+              <li>Ledger Protection: Ledger file marked read-only and digitally signed using app's private key.</li>
+              <li>Transmission Security: HTTPS/TLS 1.3 with mutual authentication for all cloud communications.</li>
+              <li>Node Sync: All Bluetooth exchanges include a nonce and HMAC verification code.</li>
+            </ul>
+            <p>This structure ensures even if the device or node is seized, data remain unreadable without proper decryption credentials.</p>
+          </section>
+
+          <section id="ai" class="section">
+            <h2>8. AI-Based Sound and Event Recognition</h2>
+            <p>The AI module samples low-level audio features and classifies inputs using a compact convolutional model.</p>
+            <p>It identifies events such as screaming, breaking sounds, or rapid motion patterns. If confidence exceeds threshold, SEPAS autonomously triggers SOS. The model runs locally and does not transmit raw data to the cloud.</p>
+          </section>
+
+          <section id="cloud" class="section">
+            <h2>9. Cloud Infrastructure and APIs</h2>
+            <p>The SEPAS server stack includes:</p>
+            <ul>
+              <li>API Gateway: Receives and verifies incoming alert requests.</li>
+              <li>Data Integrity Service: Recomputes file hashes and compares them with the ledger to confirm authenticity.</li>
+              <li>Notification Engine: Pushes validated alerts to registered authority and guardian devices.</li>
+              <li>Audit Database: Stores metadata only, not raw media.</li>
+              <li>Access Control Layer: Implements token-based role separation for forensic and administrative access.</li>
+            </ul>
+            <p>Backend runs on a scalable containerized environment with auto-replication for reliability.</p>
+          </section>
+
+          <section id="reliability" class="section">
+            <h2>10. Reliability, Redundancy, and Power Optimization</h2>
+            <ul>
+              <li>The node's firmware maintains a circular buffer for metadata caching.</li>
+              <li>When power drops below threshold, it transmits emergency packets to the nearest powered node before shutting down.</li>
+              <li>Mobile app schedules background sync when charger connection resumes.</li>
+              <li>Data replication between phone and node ensures redundancy without excessive energy consumption.</li>
+            </ul>
+          </section>
+
+          <section id="scalability" class="section">
+            <h2>11. Scalability and Future Expansion</h2>
+            <p>SEPAS can evolve into a national safety infrastructure with extended features:</p>
+            <ul>
+              <li>Integration with smart street lights and CCTV feeds for automated verification.</li>
+              <li>LoRa and 5G-based hybrid mesh expansion for larger geographic reach.</li>
+              <li>Integration with government emergency APIs for automatic FIR pre-registration.</li>
+              <li>Blockchain-backed global ledger synchronization for tamper-proof event verification.</li>
+            </ul>
+          </section>
+
+          <section id="limitations" class="section">
+            <h2>12. Known Limitations</h2>
+            <ul>
+              <li>Bluetooth Mesh range and latency vary with environment and interference.</li>
+              <li>Device hardware limitations restrict simultaneous audio-video recording on low-end phones.</li>
+              <li>AI model accuracy depends on dataset diversity and ambient noise conditions.</li>
+              <li>Node manufacturing cost may affect large-scale deployment.</li>
+              <li>Strict privacy laws require clear consent and compliance frameworks before data sharing with authorities.</li>
+            </ul>
+          </section>
+
+          <section id="conclusion" class="section">
+            <h2>13. Conclusion</h2>
+            <p>SEPAS represents a fusion of mobile technology, cryptographic security, and community-driven networking for real-time safety response. Its strength lies in its ability to function under disconnected conditions while maintaining data integrity and privacy. The system establishes a foundation for future nationwide safety infrastructure built upon trust, transparency, and technical precision.</p>
+            <p class="print-only small">Document generated for SEPAS blueprint. Page: 1</p>
+          </section>
+        </article>
+      </main>
+    </div>
+  </div>
+  
+  <!-- PDF Viewer Modal -->
+  <div class="pdf-viewer" id="pdfViewer">
+    <div class="pdf-container">
+      <div class="pdf-header">
+        <h3>SEPAS Technical Blueprint PDF</h3>
+        <button class="close-btn" id="closePdfBtn">&times;</button>
+      </div>
+      <div class="pdf-content">
+        <!-- PDF will be displayed here -->
+        <iframe class="pdf-iframe" id="pdfFrame" src="" title="SEPAS Technical Blueprint PDF"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Simple client-side search: highlight headings and show matches
+    document.getElementById('searchBtn').addEventListener('click', function() {
+      const q = document.getElementById('q').value.trim().toLowerCase();
+      if (!q) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      
+      const sections = Array.from(document.querySelectorAll('article .section'));
+      let found = false;
+      
+      // Remove previous highlights
+      sections.forEach(s => {
+        s.classList.remove('highlighted');
+      });
+      
+      // Find and highlight matching sections
+      sections.forEach(s => {
+        const text = s.innerText.toLowerCase();
+        if (text.indexOf(q) !== -1) {
+          found = true;
+          s.classList.add('highlighted');
+          s.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+      
+      if (!found) alert('No matches found');
+    });
+
+    // Enable anchor click smooth scroll
+    document.querySelectorAll('nav a').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        document.querySelector(a.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+
+    // PDF Viewer functionality
+    const pdfViewer = document.getElementById('pdfViewer');
+    const pdfFrame = document.getElementById('pdfFrame');
+    const viewPdfBtn = document.getElementById('viewPdfBtn');
+    const closePdfBtn = document.getElementById('closePdfBtn');
+
+    // Function to open PDF viewer
+    function openPdfViewer() {
+      // Replace with the actual path to your PDF file
+      const pdfUrl = 'YIP PRESENTATION.pdf';
+      pdfFrame.src = pdfUrl;
+      pdfViewer.style.display = 'flex';
+    }
+
+    // Function to close PDF viewer
+    function closePdfViewer() {
+      pdfViewer.style.display = 'none';
+      pdfFrame.src = ''; // Clear the iframe source
+    }
+
+    // Event listeners for PDF viewer
+    viewPdfBtn.addEventListener('click', openPdfViewer);
+    closePdfBtn.addEventListener('click', closePdfViewer);
+
+    // Close PDF viewer when clicking outside the container
+    pdfViewer.addEventListener('click', function(e) {
+      if (e.target === pdfViewer) {
+        closePdfViewer();
+      }
+    });
+
+    // Close PDF viewer with Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && pdfViewer.style.display === 'flex') {
+        closePdfViewer();
+      }
+    });
+  </script>
+</body>
+</html>
